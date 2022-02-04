@@ -1,41 +1,58 @@
 import time
 from pathlib import Path
-from saucenao_api import SauceNao
+from typing import BinaryIO
+from io import TextIOWrapper
+from tqdm import tqdm
+from saucenao_api import SauceNao, errors
 
 current_directory = Path.cwd()
-# Images whose sauce are to be found are placed in the 'images' folder
+# Images whose sauce are to be found are placed in the 'images' folder in the current directory
 images_directory = current_directory / 'images'
 
 # Enter the api_key from saucenao by creating an account
 sauce = SauceNao('<Replace this with the api key>')
 
-def find_sauce(bin_img):
+def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapper) -> None:
+
     try:
         results = sauce.from_file(bin_img)
+    except errors.ShortLimitReachedError as e:
+        print(e)
+        print('Waiting for 30 seconds.....')
+        # Progress bar
+        for i in tqdm(range(30), ncols=75):
+            time.sleep(1)
+        # Trying to fetch the sauce again after reaching the 30 second limit
+        try:
+            results = sauce.from_file(bin_img)
+        except Exception as e:
+            print(e)
+            print(f'Found sauce for {count} images')
+            exit()
     except Exception as e:
         print(e)
+        print(f'Found sauce for {count} images')
         exit()
 
+    print(f'\n-----{results.long_remaining} requests remaining-----\n')
+    output.write(f'\n{img_name}\n')
+    
     for i in range(len(results)):
         print(results[i].urls)
+        output.write(f'{results[i].urls}\n')
 
-    return [results.long_limit, results.long_remaining, results.short_limit, results.short_remaining]
+def main() -> None:
 
-def main():
-
-    for img in images_directory.iterdir():
+    for count, img in enumerate(images_directory.iterdir()):
+        # Opening the image in binary
         bin_img = open(img.relative_to(current_directory), 'rb')
+        output = open('results.txt', 'a')
+
         print('\n{}'.format(img.name))
-        ll, lr, sl, sr = find_sauce(bin_img)
+        find_sauce(img.name, bin_img, count, output)
+
         bin_img.close()
-
-        if lr == 0:
-            print('\nLimit reached for today, run again in 24h\n')
-            break
-
-        if sr == 0:
-            print('\nShort limit reached, waiting for 30 seconds .....\n')
-            time.sleep(30)
+        output.close()
 
 if __name__ == '__main__':
     main()
