@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+import shutil
 from typing import BinaryIO
 from io import TextIOWrapper
 from tqdm import tqdm
@@ -8,6 +9,7 @@ from saucenao_api import SauceNao, errors
 current_directory = Path.cwd()
 # Images whose sauce are to be found are placed in the 'images' folder in the current directory
 images_directory = current_directory / 'images'
+found_directory = images_directory / 'found'
 
 # Enter the api_key from saucenao by creating an account
 sauce = SauceNao('<Replace this with the api key>')
@@ -43,7 +45,11 @@ def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapp
 
 def main() -> None:
 
-    for count, img in enumerate(images_directory.iterdir()):
+    if not found_directory.exists():
+        found_directory.mkdir()
+
+    images = [item for item in images_directory.iterdir() if not item.is_dir()]
+    for count, img in enumerate(images):
         # Opening the image in binary
         bin_img = open(img.relative_to(current_directory), 'rb')
         output = open('results.txt', 'a')
@@ -53,6 +59,9 @@ def main() -> None:
 
         bin_img.close()
         output.close()
+
+        # Move the images to the found folder after the search is complete
+        shutil.move(img.as_posix(), found_directory.as_posix())
 
 if __name__ == '__main__':
     main()
