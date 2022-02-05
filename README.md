@@ -5,6 +5,8 @@ Uses saucenao's api to perform the reverse image search.
 
 To use this script, create an account on saucenao and get the api_key from the account settings and place it in the script.
 
+> The default saucenao account has a request limit of 6 requests for every 30 seconds and a total of 200 requests for 24h.
+
 ## Folder Structure
 
 The parent folder or the root folder has to consist of Find_Sauce.py and another folder named 'images' which consists the images whose sauce is to be searched / found.
