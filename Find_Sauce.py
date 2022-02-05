@@ -14,7 +14,8 @@ found_directory = images_directory / 'found'
 # Enter the api_key from saucenao by creating an account
 sauce = SauceNao('<Replace this with the api key>')
 
-def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapper) -> None:
+
+def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapper) -> int:
 
     try:
         results = sauce.from_file(bin_img)
@@ -30,7 +31,7 @@ def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapp
         except Exception as e:
             print(e)
             print(f'Found sauce for {count} images')
-            exit()
+            return -1
     except Exception as e:
         print(e)
         print(f'Found sauce for {count} images')
@@ -42,6 +43,8 @@ def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapp
     for i in range(len(results)):
         print(results[i].urls)
         output.write(f'{results[i].urls}\n')
+
+    return results.status
 
 def main() -> None:
 
@@ -55,13 +58,14 @@ def main() -> None:
         output = open('results.txt', 'a')
 
         print('\n{}'.format(img.name))
-        find_sauce(img.name, bin_img, count, output)
+        res = find_sauce(img.name, bin_img, count, output)
 
         bin_img.close()
         output.close()
 
-        # Move the images to the found folder after the search is complete
-        shutil.move(img.as_posix(), found_directory.as_posix())
+        if not res:
+            # Move the images to the found folder after the search is complete
+            shutil.move(img.as_posix(), found_directory.as_posix())
 
 if __name__ == '__main__':
     main()
