@@ -19,10 +19,27 @@ found_directory = images_directory / 'found'
 API_KEY = os.environ.get('API_KEY')
 sauce = SauceNao(API_KEY)
 
-def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapper) -> int:
+def append_to_file(output: dict, name: str, urls: list, file: TextIOWrapper) -> None:
+
+    sauce, data = {}, {}
+    last = len(output['sauces'])
+
+    data['name'] = name.strip()
+    for i, url in enumerate(urls, 1):
+        temp = url.strip()
+        temp = temp.strip('][').split(', ')
+        sauce[i] = temp
+    data['sauce'] = sauce
+    data['_id'] = last + 1
+
+    output['sauces'].append(data)
+
+    json.dump(output, file, indent=4, sort_keys=True, encoding='utf8')
+
+def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: dict, file: TextIOWrapper) -> int:
 
     try:
-        results = sauce.from_file(bin_img)
+        results = sauce.from_file(bin_img)       
     except errors.ShortLimitReachedError as e:
         print(e)
         print('Waiting for 30 seconds.....')
@@ -39,18 +56,20 @@ def find_sauce(img_name: str, bin_img: BinaryIO, count: int, output: TextIOWrapp
     except errors.LongLimitReachedError as e:
         print(e)
         print(f'Found sauce for {count} images')
-        exit()            
+        exit()
     except Exception as e:
         print(e)
         print(f'Found sauce for {count} images')
         return -1
 
     print(f'\n-----{results.long_remaining} requests remaining-----\n')
-    output.write(f'\n{img_name}\n')
+    urls = []
     
     for i in range(len(results)):
         print(results[i].urls)
-        output.write(f'{results[i].urls}\n')
+        urls.append(str(results[i].urls))
+
+    append_to_file(output, img_name, urls, file)
 
     return results.status
 
@@ -62,10 +81,11 @@ def main() -> None:
     images = [item for item in images_directory.iterdir() if not item.is_dir()]
     for count, img in enumerate(images):
         
-        # Opening the image in binary
-        with open('results.txt', 'a') as output, open(img.relative_to(current_directory), 'rb') as bin_img:
+        # Opening the image in binary, open json in r+, if opened in w+ it deletes all the content
+        with open('results.json', 'r+', encoding='utf8') as f, open(img.relative_to(current_directory), 'rb') as bin_img:
             print('\n{}'.format(img.name))
-            res = find_sauce(img.name, bin_img, count, output)
+            data = json.load(f)
+            res = find_sauce(img.name, bin_img, count, data, f)
 
         if not res:
             # Move the images to the found folder after the search is complete
