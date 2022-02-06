@@ -6,6 +6,7 @@ chardet==3.0.4
 colorama==0.4.4
 idna==2.10
 multidict==6.0.2
+python-dotenv==0.19.2
 requests==2.23.0
 saucenao-api==2.4.0
 tqdm==4.62.3

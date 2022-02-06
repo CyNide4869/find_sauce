@@ -11,6 +11,12 @@ To use this script, create an account on saucenao and get the api_key from the a
 
 The parent folder or the root folder has to consist of Find_Sauce.py and another folder named 'images' which consists the images whose sauce is to be searched / found.
 
+Create a .env file in the same folder and replace the text with the api_key
+.env
+```
+API_KEY="Paste the api_key here"
+```
+
 ## Run
 
 To run the script, first install all the dependencies from requirements.txt
