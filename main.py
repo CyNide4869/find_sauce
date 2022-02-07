@@ -71,5 +71,8 @@ def main() -> None:
             # Move the images to the found folder after the search is complete
             shutil.move(img.as_posix(), found_directory.as_posix())
 
+        # 30s limits 6 images, hence 6 * 5s = 30s, results in maximum of 6 requests in 30s 
+        time.sleep(5)
+
 if __name__ == '__main__':
     main()
