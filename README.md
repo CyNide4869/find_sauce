@@ -25,10 +25,9 @@ pip install -r requirements.txt
 ```
 Open the terminal in the current folder and run
 ```
-python Find_Sauce.py
+python main.py
 ```
 
 # Links
 
-[saucenao website](https://saucenao.com/)\
-[saucenao api module](https://github.com/nomnoms12/saucenao_api)
+[saucenao website](https://saucenao.com/)
